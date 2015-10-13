@@ -1,2 +1,43 @@
-if 2+2 == 4
-    console.log "cats" 
+
+class Game
+    constructor: ->
+        @game = new Phaser.Game(800, 600, Phaser.AUTO, 'game-container', {preload: @preload, create: @create, update: @update}, 
+                                null, false, false)
+    
+    preload: ->
+        @game.load.spritesheet('logo', 'assets/keish-v1-sheet.png', 10, 32)
+
+    create: ->
+        # start physics
+        @game.physics.startSystem Phaser.Physics.P2JS
+
+        # sky
+        data = [ '3333', '3333', '3333']
+        @game.create.texture('solid', data, 200, 200)
+        @game.add.sprite(0, 0, 'solid')
+        
+        # player
+        @player = @game.add.sprite(@game.world.centerX, @game.world.centerY, 'logo')
+        @player.anchor.setTo(0.5, 0.5)
+        @player.scale.setTo(4,4)
+        @player.animations.add('walk', [0, 1], 8, true)
+        @player.animations.add('talk', [0, 2], 2, true)
+        @game.physics.p2.enable @player
+         
+        # input
+        @cursors = @game.input.keyboard.createCursorKeys()
+
+    update: ->
+        # reset everything
+        @player.body.setZeroVelocity()
+
+        if @cursors.right.isDown
+            @player.body.moveRight 80
+            @player.animations.play 'walk'
+        else if @cursors.down.isDown
+            @player.animations.play 'talk'
+        else
+            @player.animations.stop()
+
+window.main =  =>
+    new Game()
