@@ -5,39 +5,65 @@ class Game
                                 null, false, false)
     
     preload: ->
-        @game.load.spritesheet('logo', 'assets/keish-v1-sheet.png', 10, 32)
+        @game.load.spritesheet('logo', 'assets/keish-v1.1-sheet.png', 15, 32)
+        
+        # experimenting
+        @game.load.tilemap('mario', 'assets/super_mario.json', null, Phaser.Tilemap.TILED_JSON)
+        @game.load.image('tiles', 'assets/super_mario.png')
 
     create: ->
         # start physics
         @game.physics.startSystem Phaser.Physics.P2JS
 
         # sky
-        data = [ '3333', '3333', '3333']
-        @game.create.texture('solid', data, 200, 200)
-        @game.add.sprite(0, 0, 'solid')
+#        data = [ '3333', '3333', '3333']
+#        @game.create.texture('solid', data, 200, 200)
+#        @game.add.sprite(0, 0, 'solid')
+
+        # experimenting
+        @game.stage.backgroundColor = '#787878'
+        @map = @game.add.tilemap 'mario'
+        @map.addTilesetImage 'SuperMarioBros-World1-1', 'tiles'
+        @layer = @map.createLayer 'World1'
+        @layer.resizeWorld()
         
         # player
-        @player = @game.add.sprite(@game.world.centerX, @game.world.centerY, 'logo')
+        @player = @game.add.sprite(20, 80, 'logo')
         @player.anchor.setTo(0.5, 0.5)
-        @player.scale.setTo(4,4)
-        @player.animations.add('walk', [0, 1], 8, true)
-        @player.animations.add('talk', [0, 2], 2, true)
+        @player.scale.setTo(2,2)
+        @player.animations.add('walk', [1, 2], 5, true)
+        @player.animations.add('talk', [0, 3], 2, true)
+        @playerLeft = false
         @game.physics.p2.enable @player
+        @game.physics.arcade.gravity.y = 250
+        @player.body.collideWorldBounds = true
+        @game.camera.follow @player
          
         # input
         @cursors = @game.input.keyboard.createCursorKeys()
+        console.log "Game created"
 
     update: ->
         # reset everything
         @player.body.setZeroVelocity()
 
-        if @cursors.right.isDown
-            @player.body.moveRight 80
+        if @cursors.right.isDown or @cursors.left.isDown
+            if @cursors.left.isDown 
+                @player.body.moveLeft 80
+                if !@playerLeft
+                    @player.scale.x *= -1
+                @playerLeft = true
+            else 
+                if @playerLeft
+                    @player.scale.x *= -1
+                @playerLeft = false
+                @player.body.moveRight 80
             @player.animations.play 'walk'
         else if @cursors.down.isDown
             @player.animations.play 'talk'
         else
-            @player.animations.stop()
+            @player.animations.stop null, true
+            @player.frame = 0
 
 window.main =  =>
     new Game()
