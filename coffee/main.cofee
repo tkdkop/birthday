@@ -1,15 +1,33 @@
-
 class Game
-    constructor: ->
+    constructor: (Phaser) ->
+        _.bindAll @, 'loadplayer', 'createplayer', 'preload', 'create', 'update'
         @game = new Phaser.Game(800, 600, Phaser.AUTO, 'game-container', {preload: @preload, create: @create, update: @update}, 
                                 null, false, false)
     
+    loadplayer: (str) ->
+        @game.load.spritesheet(str, "assets/#{str}-v1.1-sheet.png", 15, 32)
+
     preload: ->
-        @game.load.spritesheet('logo', 'assets/keish-v1.1-sheet.png', 15, 32)
+        @loadplayer('keish')
+        @loadplayer('red')
+        @loadplayer('blue')
+        @loadplayer('green')
         
         # experimenting
         @game.load.tilemap('mario', 'assets/super_mario.json', null, Phaser.Tilemap.TILED_JSON)
         @game.load.image('tiles', 'assets/super_mario.png')
+
+    createplayer: (name, scale, x, y) ->
+        player = @game.add.sprite(x, y, name)
+        player.anchor.setTo(0.5, 0.5)
+        player.scale.setTo(scale, scale)
+        player.animations.add('walk', [1, 2], 5, true)
+        player.animations.add('talk', [0, 3], 2, true)
+        playerLeft = false
+        @game.physics.p2.enable player
+        @game.physics.arcade.gravity.y = 250
+        player.body.collideWorldBounds = true
+        return player 
 
     create: ->
         # start physics
@@ -28,12 +46,16 @@ class Game
         @layer.resizeWorld()
         
         # player
-        @player = @game.add.sprite(20, 80, 'logo')
-        @player.anchor.setTo(0.5, 0.5)
-        @player.scale.setTo(2,2)
-        @player.animations.add('walk', [1, 2], 5, true)
-        @player.animations.add('talk', [0, 3], 2, true)
-        @playerLeft = false
+        @player = @createplayer 'keish', 2, 80, 20
+        @createplayer 'red', 1, 70, 20
+        @createplayer 'blue', 1, 60, 20
+        @createplayer 'green', 1, 50, 20
+#        @player = @game.add.sprite(20, 80, 'keish')
+#        @player.anchor.setTo(0.5, 0.5)
+#        @player.scale.setTo(2,2)
+#        @player.animations.add('walk', [1, 2], 5, true)
+#        @player.animations.add('talk', [0, 3], 2, true)
+#        @playerLeft = false
         @game.physics.p2.enable @player
         @game.physics.arcade.gravity.y = 250
         @player.body.collideWorldBounds = true
@@ -66,4 +88,4 @@ class Game
             @player.frame = 0
 
 window.main =  =>
-    new Game()
+    new Game(Phaser)
