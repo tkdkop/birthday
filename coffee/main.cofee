@@ -1,3 +1,10 @@
+# TODO move more methods in to player class - reset, move with animation
+# TODO get collisions with world working
+# TODO figure out how maps work
+# TODO figure out cutscene
+# TODO name on mouse over
+# TODO click on player
+
 class Player
     constructor: (name, game) ->
         @game = game
