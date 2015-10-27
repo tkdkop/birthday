@@ -1,33 +1,39 @@
+class Player
+    constructor: (name, game) ->
+        @game = game
+        @name = name
+        @game.load.spritesheet(name, "assets/#{name}-v1.1-sheet.png", 15, 32)
+
+    createPlayer: (scale, x, y, distance) ->
+        @distance = distance
+        @player = @game.add.sprite(x, y, @name)
+        @player.anchor.setTo(0.5, 0.5)
+        @player.scale.setTo(scale, scale)
+        @player.animations.add('walk', [1, 2], 5, true)
+        @player.animations.add('talk', [0, 3], 2, true)
+        @playerLeft = false
+        @game.physics.arcade.enable @player
+        #@game.physics.arcade.gravity.y = 250
+        @player.body.gravity.y = 300
+        @player.body.collideWorldBounds = true
+        
+
 class Game
     constructor: (Phaser) ->
-        _.bindAll @, 'loadplayer', 'createplayer', 'preload', 'create', 'update'
+        _.bindAll @, 'preload', 'create', 'update'
         @game = new Phaser.Game(800, 600, Phaser.AUTO, 'game-container', {preload: @preload, create: @create, update: @update}, 
                                 null, false, false)
     
-    loadplayer: (str) ->
-        @game.load.spritesheet(str, "assets/#{str}-v1.1-sheet.png", 15, 32)
-
     preload: ->
-        @loadplayer('keish')
-        @loadplayer('red')
-        @loadplayer('blue')
-        @loadplayer('green')
+        @player = new Player('keish', @game)
+        @player_list = []
+        @player_list.push new Player('red'  , @game)
+        @player_list.push new Player('blue' , @game)
+        @player_list.push new Player('green', @game)
         
         # experimenting
         @game.load.tilemap('mario', 'assets/super_mario.json', null, Phaser.Tilemap.TILED_JSON)
         @game.load.image('tiles', 'assets/super_mario.png')
-
-    createplayer: (name, scale, x, y) ->
-        player = @game.add.sprite(x, y, name)
-        player.anchor.setTo(0.5, 0.5)
-        player.scale.setTo(scale, scale)
-        player.animations.add('walk', [1, 2], 5, true)
-        player.animations.add('talk', [0, 3], 2, true)
-        playerLeft = false
-        @game.physics.p2.enable player
-        @game.physics.arcade.gravity.y = 250
-        player.body.collideWorldBounds = true
-        return player 
 
     create: ->
         # start physics
@@ -46,20 +52,15 @@ class Game
         @layer.resizeWorld()
         
         # player
-        @player = @createplayer 'keish', 2, 80, 20
-        @createplayer 'red', 1, 70, 20
-        @createplayer 'blue', 1, 60, 20
-        @createplayer 'green', 1, 50, 20
-#        @player = @game.add.sprite(20, 80, 'keish')
-#        @player.anchor.setTo(0.5, 0.5)
-#        @player.scale.setTo(2,2)
-#        @player.animations.add('walk', [1, 2], 5, true)
-#        @player.animations.add('talk', [0, 3], 2, true)
-#        @playerLeft = false
-        @game.physics.p2.enable @player
+        @player.createPlayer 1.5, 80, 20, 0
+        x = 50
+        dist = 10
+        for i in [0...@player_list.length]
+            @player_list[i].createPlayer(1, x + i*10, dist, dist + i*dist)
+            
         @game.physics.arcade.gravity.y = 250
-        @player.body.collideWorldBounds = true
-        @game.camera.follow @player
+        @player.player.body.collideWorldBounds = true
+        @game.camera.follow @player.player
          
         # input
         @cursors = @game.input.keyboard.createCursorKeys()
@@ -67,25 +68,34 @@ class Game
 
     update: ->
         # reset everything
-        @player.body.setZeroVelocity()
+        #@player.body.setZeroVelocity()
+        @player.player.body.velocity.x = 0;
+        @player_list.forEach (player) ->
+            player.player.body.velocity.x = 0;
 
         if @cursors.right.isDown or @cursors.left.isDown
             if @cursors.left.isDown 
-                @player.body.moveLeft 80
+                for player in @player_list
+                    if player.player.body.position.x - @player.player.body.position.x > player.distance
+                        player.player.body.velocity.x = -80
+                @player.player.body.velocity.x = -80
                 if !@playerLeft
-                    @player.scale.x *= -1
+                    @player.player.scale.x *= -1
                 @playerLeft = true
-            else 
+            else
+                for player in @player_list
+                    if player.player.body.position.x - @player.player.body.position.x < -player.distance
+                        player.player.body.velocity.x = 80
                 if @playerLeft
-                    @player.scale.x *= -1
+                    @player.player.scale.x *= -1
                 @playerLeft = false
-                @player.body.moveRight 80
-            @player.animations.play 'walk'
+                @player.player.body.velocity.x = 80
+            @player.player.animations.play 'walk'
         else if @cursors.down.isDown
-            @player.animations.play 'talk'
+            @player.player.animations.play 'talk'
         else
-            @player.animations.stop null, true
-            @player.frame = 0
+            @player.player.animations.stop null, true
+            @player.player.frame = 0
 
 window.main =  =>
     new Game(Phaser)
