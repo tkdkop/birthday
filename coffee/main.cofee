@@ -38,9 +38,11 @@ class Game
         @player_list.push new Player('blue' , @game)
         @player_list.push new Player('green', @game)
         
+        @game.load.image('tiles', 'tutorials/source/assets/images/tiles_spritesheet.png')
+        @game.load.tilemap('level','tutorials/level.json', null, Phaser.Tilemap.TILED_JSON)
         # experimenting
-        @game.load.tilemap('mario', 'assets/super_mario.json', null, Phaser.Tilemap.TILED_JSON)
-        @game.load.image('tiles', 'assets/super_mario.png')
+        # @game.load.tilemap('mario', 'assets/super_mario.json', null, Phaser.Tilemap.TILED_JSON)
+        # @game.load.image('tiles', 'assets/super_mario.png')
 
     create: ->
         # start physics
@@ -52,11 +54,27 @@ class Game
 #        @game.add.sprite(0, 0, 'solid')
 
         # experimenting
-        @game.stage.backgroundColor = '#787878'
-        @map = @game.add.tilemap 'mario'
-        @map.addTilesetImage 'SuperMarioBros-World1-1', 'tiles'
-        @layer = @map.createLayer 'World1'
-        @layer.resizeWorld()
+        # @game.stage.backgroundColor = '#787878'
+        @map = @game.add.tilemap 'level'
+        @map.addTilesetImage 'tiles_spritesheet', 'tiles'
+        # ogres are like onions... they have layers!
+        @layers = {}
+        @map.layers.forEach (layer) =>
+            name = layer.name
+            @layers[name] = @map.createLayer name
+            if layer.properties.collision
+                collision_tiles = []
+                layer.data.forEach (row) =>
+                    row.forEach (tile) =>
+                        if tile.index > 0 and collision_tiles.indexOf(tile.index) == -1
+                            collision_tiles.push tile.index
+                @map.setCollision collision_tiles, true, name 
+        @layers[@map.layer.name].resizeWorld()
+
+        # @map = @game.add.tilemap 'mario'
+        # @map.addTilesetImage 'SuperMarioBros-World1-1', 'tiles'
+        # @layer = @map.createLayer 'World1'
+        # @layer.resizeWorld()
         
         # player
         @player.createPlayer 1.5, 80, 20, 0

@@ -1,0 +1,11 @@
+{
+    'assets': {
+        'map_tiles': {
+            'type':'image',
+            'source':'tutorials/assets/images/tiles_spritesheet.png',
+        },
+        'level_tilemap': {
+            'type':'tilemap',
+            'source':'tutorials/level.json',
+        }
+}
