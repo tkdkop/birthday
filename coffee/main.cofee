@@ -23,8 +23,7 @@ class Player
         #@game.physics.arcade.gravity.y = 250
         @player.body.gravity.y = 300
         @player.body.collideWorldBounds = true
-        
-
+    
 class Game
     constructor: (Phaser) ->
         _.bindAll @, 'preload', 'create', 'update'
@@ -95,8 +94,9 @@ class Game
         # reset everything
         #@player.body.setZeroVelocity()
         @player.player.body.velocity.x = 0;
-        @player_list.forEach (player) ->
+        for player in _.union @player_list, [@player] 
             player.player.body.velocity.x = 0;
+            @game.physics.arcade.collide player.player, @layers.collision       
 
         if @cursors.right.isDown or @cursors.left.isDown
             if @cursors.left.isDown 
