@@ -15,7 +15,7 @@ class Player
         @name = name
         @game.load.spritesheet(name, "assets/#{name}-v1.1-sheet.png", 15, 32)
 
-    createPlayer: (scale, x, y, distance) ->
+    createPlayer: (scale, x, y, distance, font) ->
         @distance = distance
         @player = @game.add.sprite(x, y, @name)
         @player.anchor.setTo(0.5, 0.5)
@@ -27,6 +27,10 @@ class Player
         #@game.physics.arcade.gravity.y = 250
         @player.body.gravity.y = 300
         @player.body.collideWorldBounds = true
+        @text = @game.add.text(0,0, @name, font)
+        @text.anchor.set(0.5)
+        @text.alpha = 0
+        @player.inputEnabled = true
 
     update: (game, cursors, layers, p1) ->
         @player.body.velocity.x = 0;
@@ -57,7 +61,15 @@ class Player
         else
             @player.animations.stop null, true
             @player.frame = 0
+        @text.x = Math.floor(@player.x + @player.width / 2)
+        @text.y = Math.floor(@player.y + @player.height / 2)
         
+        if @player.input.pointerOver()
+            @text.alpha = 1
+        else
+            @text.alpha = 0
+
+
 class Game
     constructor: (Phaser) ->
         _.bindAll @, 'preload', 'create', 'update'
@@ -108,9 +120,17 @@ class Game
         # @map.addTilesetImage 'SuperMarioBros-World1-1', 'tiles'
         # @layer = @map.createLayer 'World1'
         # @layer.resizeWorld()
+         
+        # font
+        font = 
+            font: "12px Arial"
+            fill: "#000000"
+            wordWrap: true
+            wordWrapWidth: 20
+            align:"center"
         
         # player
-        @player.createPlayer 1.5, 80, 20, 0
+        @player.createPlayer 1.5, 80, 20, 0, font
         x = 50
         dist = 10
         for i in [0...@player_list.length]
@@ -119,7 +139,7 @@ class Game
         @game.physics.arcade.gravity.y = 250
         @player.player.body.collideWorldBounds = true
         @game.camera.follow @player.player
-         
+
         # input
         @cursors = @game.input.keyboard.createCursorKeys()
         console.log "Game created"
