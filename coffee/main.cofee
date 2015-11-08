@@ -93,11 +93,6 @@ class Game
         # start physics
         @game.physics.startSystem Phaser.Physics.P2JS
 
-        # sky
-#        data = [ '3333', '3333', '3333']
-#        @game.create.texture('solid', data, 200, 200)
-#        @game.add.sprite(0, 0, 'solid')
-
         # experimenting
         # @game.stage.backgroundColor = '#787878'
         @map = @game.add.tilemap 'level'
@@ -140,11 +135,26 @@ class Game
         @player.player.body.collideWorldBounds = true
         @game.camera.follow @player.player
 
+        # Text background
+        data = [ '3333', '3333', '3333']
+        @game.create.texture('solid', data, 200, 200)
+        @start_screen = @game.add.sprite(0, 0, 'solid')
+        @game.start = true
+        cutscene_font = 
+            font: "24px Arial"
+            fill: "#FFFFFF"
+            align:"center"
+        @start_text = @game.add.text( @game.world.centerX, @game.world.centerY, 
+            'Once upon a time\n...', cutscene_font )
+
         # input
         @cursors = @game.input.keyboard.createCursorKeys()
         console.log "Game created"
 
     update: ->
+        if @game.start and @game.input.mousePointer.isDown
+            @start_screen.kill()
+            @start_text.kill()
         # reset everything
         for player in _.union @player_list, [@player]
             player.update @game, @cursors, @layers, @player
