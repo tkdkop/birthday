@@ -5,6 +5,9 @@
 # TODO name on mouse over
 # TODO click on player
 
+window.preferences =
+    cutscene_1: false
+
 # physics - Liam and Nina
 # math - Katie
 # bio - Naomi
@@ -136,16 +139,17 @@ class Game
         @game.camera.follow @player.player
 
         # Text background
-        data = [ '3333', '3333', '3333']
-        @game.create.texture('solid', data, 200, 200)
-        @start_screen = @game.add.sprite(0, 0, 'solid')
-        @game.start = true
-        cutscene_font = 
-            font: "24px Arial"
-            fill: "#FFFFFF"
-            align:"center"
-        @start_text = @game.add.text( @game.world.centerX, @game.world.centerY, 
-            'Once upon a time\n...', cutscene_font )
+        if window.preferences.cutscene_1
+            data = [ '3333', '3333', '3333']
+            @game.create.texture('solid', data, 200, 200)
+            @start_screen = @game.add.sprite(0, 0, 'solid')
+            @game.start = true
+            cutscene_font = 
+                font: "24px Arial"
+                fill: "#FFFFFF"
+                align:"center"
+            @start_text = @game.add.text( @game.world.centerX, @game.world.centerY, 
+                'Once upon a time\n...', cutscene_font )
 
         # input
         @cursors = @game.input.keyboard.createCursorKeys()
@@ -158,7 +162,7 @@ class Game
         # reset everything
         for player in _.union @player_list, [@player]
             player.update @game, @cursors, @layers, @player
-        return
+        
 
 window.main =  =>
     new Game(Phaser)
