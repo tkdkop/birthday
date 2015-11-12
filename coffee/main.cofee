@@ -1,12 +1,8 @@
-# TODO move more methods in to player class - reset, move with animation
-# TODO get collisions with world working
-# TODO figure out how maps work
-# TODO figure out cutscene
-# TODO name on mouse over
 # TODO click on player
 
 window.preferences =
     cutscene_1: false
+    debug: true
 
 # physics - Liam and Nina
 # math - Katie
@@ -14,6 +10,7 @@ window.preferences =
 
 class Player
     constructor: (name, game) ->
+        _.bindAll @, 'menu', 'createPlayer'
         @game = game
         @name = name
         @game.load.spritesheet(name, "assets/#{name}-v1.1-sheet.png", 15, 32)
@@ -34,6 +31,10 @@ class Player
         @text.anchor.set(0.5)
         @text.alpha = 0
         @player.inputEnabled = true
+        @player.events.onInputUp.add @menu
+    
+    menu: ->
+        console.log " click #{@name}"
 
     update: (game, cursors, layers, p1) ->
         @player.body.velocity.x = 0;
@@ -89,10 +90,7 @@ class Game
         
         @game.load.image('tiles', 'tutorials/source/assets/images/tiles_spritesheet.png')
         @game.load.tilemap('level','tutorials/level.json', null, Phaser.Tilemap.TILED_JSON)
-        # experimenting
-        # @game.load.tilemap('mario', 'assets/super_mario.json', null, Phaser.Tilemap.TILED_JSON)
-        # @game.load.image('tiles', 'assets/super_mario.png')
-
+ 
     create: ->
         # start physics
         @game.physics.startSystem Phaser.Physics.P2JS
@@ -115,11 +113,6 @@ class Game
                 @map.setCollision collision_tiles, true, name 
         @layers[@map.layer.name].resizeWorld()
 
-        # @map = @game.add.tilemap 'mario'
-        # @map.addTilesetImage 'SuperMarioBros-World1-1', 'tiles'
-        # @layer = @map.createLayer 'World1'
-        # @layer.resizeWorld()
-         
         # font
         font = 
             font: "12px Arial"
@@ -166,7 +159,8 @@ class Game
             
     render: ->
         # only for debugging, this can get removed from the game when completed
-        @game.debug.inputInfo(32, 32);
+        if window.preferences.debug
+            @game.debug.inputInfo(32, 32);
 
         
 
