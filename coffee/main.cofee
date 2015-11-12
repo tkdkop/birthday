@@ -75,8 +75,9 @@ class Player
 
 class Game
     constructor: (Phaser) ->
-        _.bindAll @, 'preload', 'create', 'update'
-        @game = new Phaser.Game(800, 600, Phaser.AUTO, 'game-container', {preload: @preload, create: @create, update: @update}, 
+        _.bindAll @, 'preload', 'create', 'update', 'render'
+        @game = new Phaser.Game(800, 600, Phaser.AUTO, 'game-container', 
+            {preload: @preload, create: @create, update: @update, render: @render}, 
                                 null, false, false)
     
     preload: ->
@@ -128,11 +129,11 @@ class Game
             align:"center"
         
         # player
-        @player.createPlayer 1.5, 80, 20, 0, font
+        @player.createPlayer 1.5, 80, 250, 0, font
         x = 50
         dist = 10
         for i in [0...@player_list.length]
-            @player_list[i].createPlayer(1, 80 - i*10, dist, dist + i*dist)
+            @player_list[i].createPlayer(1, 80 - i*10, 260, dist + i*dist)
             
         @game.physics.arcade.gravity.y = 250
         @player.player.body.collideWorldBounds = true
@@ -162,6 +163,11 @@ class Game
         # reset everything
         for player in _.union @player_list, [@player]
             player.update @game, @cursors, @layers, @player
+            
+    render: ->
+        # only for debugging, this can get removed from the game when completed
+        @game.debug.inputInfo(32, 32);
+
         
 
 window.main =  =>
