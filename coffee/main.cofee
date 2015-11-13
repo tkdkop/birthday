@@ -89,7 +89,7 @@ class Game
         @player_list.push new Player('green', @game)
         
         @game.load.image('tiles', 'tutorials/source/assets/images/tiles_spritesheet.png')
-        @game.load.tilemap('level','tutorials/level.json', null, Phaser.Tilemap.TILED_JSON)
+        @game.load.tilemap('level','tutorials/v2.json', null, Phaser.Tilemap.TILED_JSON)
  
     create: ->
         # start physics
@@ -98,7 +98,7 @@ class Game
         # experimenting
         # @game.stage.backgroundColor = '#787878'
         @map = @game.add.tilemap 'level'
-        @map.addTilesetImage 'tiles_spritesheet', 'tiles'
+        @map.addTilesetImage 'tiles_sprite', 'tiles'
         # ogres are like onions... they have layers!
         @layers = {}
         @map.layers.forEach (layer) =>
