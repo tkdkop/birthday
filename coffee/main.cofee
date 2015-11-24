@@ -76,7 +76,7 @@ class Player
 
 class Game
     constructor: (Phaser) ->
-        _.bindAll @, 'preload', 'create', 'update', 'render'
+        _.bindAll @, 'preload', 'create', 'create_object', 'update', 'render'
         @game = new Phaser.Game(800, 600, Phaser.AUTO, 'game-container', 
             {preload: @preload, create: @create, update: @update, render: @render}, 
                                 null, false, false)
@@ -91,6 +91,16 @@ class Game
         @game.load.image('tiles', 'tutorials/source/assets/images/tiles_spritesheet.png')
         @game.load.tilemap('level','tutorials/level.json', null, Phaser.Tilemap.TILED_JSON)
  
+    create_object: (obj) ->
+        position = 
+            x: obj.x + (@map.tileHeight / 2)
+            y: obj.y - (@map.tileHeight / 2)
+        
+        data = [ '3333', '3333', '3333']
+        @game.create.texture('solid', data)
+        @game.add.sprite(position.x, position.y, 'solid')
+        console.log obj
+
     create: ->
         # start physics
         @game.physics.startSystem Phaser.Physics.P2JS
@@ -113,6 +123,9 @@ class Game
                 @map.setCollision collision_tiles, true, name 
         @layers[@map.layer.name].resizeWorld()
 
+        # add objects
+        for obj in @map.objects.objects
+            @create_object(obj)
         # font
         font = 
             font: "12px Arial"

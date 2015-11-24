@@ -362,9 +362,6 @@
    <tile gid="0"/>
    <tile gid="0"/>
    <tile gid="0"/>
-   <tile gid="33"/>
-   <tile gid="104"/>
-   <tile gid="9"/>
    <tile gid="0"/>
    <tile gid="0"/>
    <tile gid="0"/>
@@ -372,6 +369,9 @@
    <tile gid="0"/>
    <tile gid="0"/>
    <tile gid="0"/>
+   <tile gid="0"/>
+   <tile gid="0"/>
+   <tile gid="0"/>
    <tile gid="104"/>
    <tile gid="104"/>
    <tile gid="104"/>
@@ -382,9 +382,9 @@
    <tile gid="104"/>
    <tile gid="104"/>
    <tile gid="104"/>
-   <tile gid="21"/>
-   <tile gid="153"/>
-   <tile gid="152"/>
+   <tile gid="104"/>
+   <tile gid="104"/>
+   <tile gid="104"/>
    <tile gid="104"/>
    <tile gid="104"/>
    <tile gid="104"/>
@@ -414,10 +414,4 @@
    <tile gid="153"/>
   </data>
  </layer>
- <objectgroup name="objects">
-  <object id="9" name="floating-box" gid="79" x="473" y="268" width="35" height="35"/>
-  <object id="10" name="exit-sign" gid="65" x="578" y="279" width="35" height="35"/>
-  <object id="11" name="green-box" gid="98" x="311" y="280" width="35" height="35"/>
-  <object id="12" name="player-maybe" x="27" y="254"/>
- </objectgroup>
 </map>
