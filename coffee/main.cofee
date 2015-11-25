@@ -98,8 +98,10 @@ class Game
         
         data = [ '3333', '3333', '3333']
         @game.create.texture('solid', data)
-        @game.add.sprite(position.x, position.y, 'solid')
-        console.log obj
+        obstacle = @game.add.sprite(position.x, position.y, 'solid')
+        @game.physics.enable obstacle
+        obstacle.body.allowGravity = false
+        return obstacle
 
     create: ->
         # start physics
@@ -124,8 +126,11 @@ class Game
         @layers[@map.layer.name].resizeWorld()
 
         # add objects
+        @obstacles = []
         for obj in @map.objects.objects
-            @create_object(obj)
+            obstacle = @create_object(obj)
+            @obstacles.push obstacle
+        console.log @obstacles
         # font
         font = 
             font: "12px Arial"
@@ -149,8 +154,9 @@ class Game
         if window.preferences.cutscene_1
             data = [ '3333', '3333', '3333']
             @game.create.texture('solid', data, 200, 200)
+            console.log "adding shit"
             @start_screen = @game.add.sprite(0, 0, 'solid')
-            @game.start = true
+            @game_state = "start"
             cutscene_font = 
                 font: "24px Arial"
                 fill: "#FFFFFF"
@@ -158,18 +164,27 @@ class Game
             @start_text = @game.add.text( @game.world.centerX, @game.world.centerY, 
                 'Once upon a time\n...', cutscene_font )
 
+        # game_state: start, movement, obstacle
+        if not @game_state?
+            @game_state = "movement"
+
         # input
         @cursors = @game.input.keyboard.createCursorKeys()
         console.log "Game created"
 
     update: ->
-        console.log "update"
-        if @game.start and @game.input.mousePointer.isDown
+        if @game_state == "start" and @game.input.mousePointer.isDown
             @start_screen.kill()
             @start_text.kill()
-        # reset everything
-        for player in _.union @player_list, [@player]
-            player.update @game, @cursors, @layers, @player
+            @game_state = "movement"
+        if @game_state == "obstacle"
+            @game_state = "obstacle"
+            console.log "obstacle encountered"
+        if @game_state == "movement"
+            for player in _.union @player_list, [@player]
+                player.update @game, @cursors, @layers, @player
+            for obstacle in @obstacles
+                @game.physics.arcade.collide( @player.player, obstacle, => @game_state = "obstacle")
             
     render: ->
         # only for debugging, this can get removed from the game when completed
