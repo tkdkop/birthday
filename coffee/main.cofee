@@ -108,7 +108,7 @@ class Game
         # experimenting
         # @game.stage.backgroundColor = '#787878'
         @map = @game.add.tilemap 'level'
-        @map.addTilesetImage 'tiles_sprite', 'tiles'
+        @map.addTilesetImage 'tiles_spritesheet', 'tiles'
         # ogres are like onions... they have layers!
         @layers = {}
         @map.layers.forEach (layer) =>
@@ -163,6 +163,7 @@ class Game
         console.log "Game created"
 
     update: ->
+        console.log "update"
         if @game.start and @game.input.mousePointer.isDown
             @start_screen.kill()
             @start_text.kill()
