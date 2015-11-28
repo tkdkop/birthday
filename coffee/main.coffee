@@ -179,12 +179,21 @@ class Game
             @game_state = "movement"
         if @game_state == "obstacle"
             @game_state = "obstacle"
+            for player in _.union @player_list, [@player]
+                player.player.body.velocity.x = 0
+                player.player.body.velocity.y = 0
+                player.player.animations.stop null, true
+                @game.physics.arcade.collide player.player, @layers.collision
+
             console.log "obstacle encountered"
         if @game_state == "movement"
             for player in _.union @player_list, [@player]
                 player.update @game, @cursors, @layers, @player
             for obstacle in @obstacles
-                @game.physics.arcade.collide( @player.player, obstacle, => @game_state = "obstacle")
+                @game.physics.arcade.collide( @player.player, obstacle, (=>console.log "collision"),
+                    (=>
+                        @game_state = "obstacle"
+                        return false))
             
     render: ->
         # only for debugging, this can get removed from the game when completed
