@@ -13,7 +13,8 @@ class Player
         _.bindAll @, 'menu', 'createPlayer'
         @game = game
         @name = name
-        @game.load.spritesheet(name, "assets/#{name}-v2.png", 17, 25) # width, height
+        @game.load.spritesheet(name, "assets/naomi.png", 20, 25) # width, height
+        # katie - 22x25, nina - 19x25, naomi - 20x25, others - 17x25
 
     createPlayer: (scale, x, y, distance, font) ->
         @distance = distance
