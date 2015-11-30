@@ -13,7 +13,7 @@ class Player
         _.bindAll @, 'menu', 'createPlayer'
         @game = game
         @name = name
-        @game.load.spritesheet(name, "assets/#{name}-v1.1-sheet.png", 15, 32)
+        @game.load.spritesheet(name, "assets/#{name}-v2.png", 17, 25) # width, height
 
     createPlayer: (scale, x, y, distance, font) ->
         @distance = distance
@@ -21,7 +21,7 @@ class Player
         @player.anchor.setTo(0.5, 0.5)
         @player.scale.setTo(scale, scale)
         @player.animations.add('walk', [1, 2], 5, true)
-        @player.animations.add('talk', [0, 3], 2, true)
+#        @player.animations.add('talk', [0, 3], 2, true)
         @playerLeft = false
         @game.physics.arcade.enable @player
         #@game.physics.arcade.gravity.y = 250
@@ -35,12 +35,15 @@ class Player
     
     menu: ->
         console.log " click #{@name}"
+        if @name == @game.requirement
+            @game.game_state = "movement"
+        console.log @game.game_state
 
     update: (game, cursors, layers, p1) ->
         @player.body.velocity.x = 0;
         game.physics.arcade.collide @player, layers.collision       
 
-        if cursors.right.isDown or cursors.left.isDown
+        if (cursors.right.isDown or cursors.left.isDown) and @game.game_state == "movement"
             if cursors.left.isDown
                 if @ != p1 
                     if @player.body.position.x - p1.player.body.position.x > @distance + 10
@@ -76,7 +79,7 @@ class Player
 
 class Game
     constructor: (Phaser) ->
-        _.bindAll @, 'preload', 'create', 'create_object', 'update', 'render'
+        _.bindAll @, 'preload', 'create', 'create_object', 'update', 'render', 'collide_with_obstacle'
         @game = new Phaser.Game(800, 600, Phaser.AUTO, 'game-container', 
             {preload: @preload, create: @create, update: @update, render: @render}, 
                                 null, false, false)
@@ -84,10 +87,10 @@ class Game
     preload: ->
         @player = new Player('keish', @game)
         @player_list = []
-        @player_list.push new Player('red'  , @game)
-        @player_list.push new Player('blue' , @game)
-        @player_list.push new Player('green', @game)
-        
+#        @player_list.push new Player('red'  , @game)
+#        @player_list.push new Player('blue' , @game)
+#        @player_list.push new Player('green', @game)
+#
         @game.load.image('tiles', 'tutorials/source/assets/images/tiles_spritesheet.png')
         @game.load.tilemap('level','tutorials/v2.json', null, Phaser.Tilemap.TILED_JSON)
  
@@ -156,7 +159,7 @@ class Game
             @game.create.texture('solid', data, 200, 200)
             console.log "adding shit"
             @start_screen = @game.add.sprite(0, 0, 'solid')
-            @game_state = "start"
+            @game.game_state = "start"
             cutscene_font = 
                 font: "24px Arial"
                 fill: "#FFFFFF"
@@ -165,36 +168,34 @@ class Game
                 'Once upon a time\n...', cutscene_font )
 
         # game_state: start, movement, obstacle
-        if not @game_state?
-            @game_state = "movement"
+        if not @game.game_state?
+            @game.game_state = "movement"
 
         # input
         @cursors = @game.input.keyboard.createCursorKeys()
         console.log "Game created"
 
     update: ->
-        if @game_state == "start" and @game.input.mousePointer.isDown
+        if @game.game_state == "start" and @game.input.mousePointer.isDown
             @start_screen.kill()
             @start_text.kill()
-            @game_state = "movement"
-        if @game_state == "obstacle"
-            @game_state = "obstacle"
-            for player in _.union @player_list, [@player]
-                player.player.body.velocity.x = 0
-                player.player.body.velocity.y = 0
-                player.player.animations.stop null, true
-                @game.physics.arcade.collide player.player, @layers.collision
-
-            console.log "obstacle encountered"
-        if @game_state == "movement"
+            @game.game_state = "movement"
+        else
             for player in _.union @player_list, [@player]
                 player.update @game, @cursors, @layers, @player
             for obstacle in @obstacles
                 @game.physics.arcade.collide( @player.player, obstacle, (=>console.log "collision"),
                     (=>
-                        @game_state = "obstacle"
+                        @collide_with_obstacle(obstacle)
                         return false))
-            
+
+    collide_with_obstacle: (obstacle) ->
+        @game.game_state = 'obstacle'
+        console.log "obstacle"
+        @game.requirement = 'green'
+        @obstacles = _.without(@obstacles, obstacle)
+
+
     render: ->
         # only for debugging, this can get removed from the game when completed
         if window.preferences.debug
