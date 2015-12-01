@@ -6,15 +6,14 @@ window.preferences =
 
 # physics - Liam and Nina
 # math - Katie
-# bio - Naomi
+# bio - Miranda
 
 class Player
-    constructor: (name, game) ->
+    constructor: (name, game, width) ->
         _.bindAll @, 'menu', 'createPlayer'
         @game = game
         @name = name
-        @game.load.spritesheet(name, "assets/naomi.png", 20, 25) # width, height
-        # katie - 22x25, nina - 19x25, naomi - 20x25, others - 17x25
+        @game.load.spritesheet(name, "assets/#{name}.png", width, 25) # width, height
 
     createPlayer: (scale, x, y, distance, font) ->
         @distance = distance
@@ -86,12 +85,14 @@ class Game
                                 null, false, false)
     
     preload: ->
-        @player = new Player('keish', @game)
+        # katie - 22x25, nina - 19x25, miranda - 20x25, others - 17x25
+        @player = new Player('keish', @game, 17)
         @player_list = []
-#        @player_list.push new Player('red'  , @game)
-#        @player_list.push new Player('blue' , @game)
-#        @player_list.push new Player('green', @game)
-#
+        @player_list.push new Player('nina'  , @game, 19)
+        @player_list.push new Player('liam' , @game, 17)
+        @player_list.push new Player('miranda', @game, 20)
+        @player_list.push new Player('katie', @game, 22)
+
         @game.load.image('tiles', 'tutorials/source/assets/images/tiles_spritesheet.png')
         @game.load.tilemap('level','tutorials/v2.json', null, Phaser.Tilemap.TILED_JSON)
  
@@ -146,7 +147,7 @@ class Game
         # player
         @player.createPlayer 1.5, 80, 250, 0, font
         x = 50
-        dist = 10
+        dist = 20
         for i in [0...@player_list.length]
             @player_list[i].createPlayer(1, 80 - i*10, 260, dist + i*dist)
             
@@ -193,7 +194,7 @@ class Game
     collide_with_obstacle: (obstacle) ->
         @game.game_state = 'obstacle'
         console.log "obstacle"
-        @game.requirement = 'green'
+        @game.requirement = 'katie'
         @obstacles = _.without(@obstacles, obstacle)
 
 
