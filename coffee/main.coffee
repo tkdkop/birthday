@@ -14,8 +14,16 @@ class Player
         @game = game
         @name = name
         @game.load.spritesheet(name, "assets/#{name}.png", width, 25) # width, height
+        # font
+        @font =
+            font: "18px Arial"
+            fill: "#000000"
+            wordWrap: true
+            wordWrapWidth: 20
+            align:"center"
 
-    createPlayer: (scale, x, y, distance, font) ->
+
+    createPlayer: (scale, x, y, distance) ->
         @distance = distance
         @player = @game.add.sprite(x, y, @name)
         @player.anchor.setTo(0.5, 0.5)
@@ -27,13 +35,27 @@ class Player
         #@game.physics.arcade.gravity.y = 250
         @player.body.gravity.y = 300
         @player.body.collideWorldBounds = true
-        @text = @game.add.text(0,0, @name, font)
-        @text.anchor.set(0.5)
+        @button = @game.add.button(0,0, 'button', @buttonClick, @, 1,0,2)
+        @button.anchor.set(0.5, 0.5)
+        @button.visible = false
+
+        @text = @game.add.text(0,0, @name, @font)
+        @text.anchor.set(0.5, 0.5)
         @text.alpha = 0
         @player.inputEnabled = true
         @player.events.onInputUp.add @menu
-    
+
+    buttonClick: ->
+        @button.visible = false
+        @game.button_visible = false
+
     menu: ->
+        if @game.button_visible
+            return
+        @button.x = Math.floor(@player.x + @player.width / 2)
+        @button.y = Math.floor(@player.y + @player.height / 2 - 40)
+        @button.visible = true
+        @game.button_visible = true
         console.log " click #{@name}"
         if @name == @game.requirement
             @game.game_state = "movement"
@@ -69,7 +91,7 @@ class Player
             @player.animations.stop null, true
             @player.frame = 0
         @text.x = Math.floor(@player.x + @player.width / 2)
-        @text.y = Math.floor(@player.y + @player.height / 2)
+        @text.y = Math.floor(@player.y + @player.height / 2 + 10)
         
         if @player.input.pointerOver()
             @text.alpha = 1
@@ -95,6 +117,7 @@ class Game
 
         @game.load.image('tiles', 'tutorials/source/assets/images/tiles_spritesheet.png')
         @game.load.tilemap('level','tutorials/v2.json', null, Phaser.Tilemap.TILED_JSON)
+        @game.load.spritesheet('button', 'assets/flixel-button.png',80, 20)
  
     create_object: (obj) ->
         position = 
@@ -136,16 +159,9 @@ class Game
             obstacle = @create_object(obj)
             @obstacles.push obstacle
         console.log @obstacles
-        # font
-        font = 
-            font: "12px Arial"
-            fill: "#000000"
-            wordWrap: true
-            wordWrapWidth: 20
-            align:"center"
-        
+
         # player
-        @player.createPlayer 1.5, 80, 250, 0, font
+        @player.createPlayer 1.5, 80, 250, 0
         x = 50
         dist = 20
         for i in [0...@player_list.length]
