@@ -35,13 +35,21 @@ class Player
         #@game.physics.arcade.gravity.y = 250
         @player.body.gravity.y = 300
         @player.body.collideWorldBounds = true
-        
-        @button = @game.add.button(0,0, 'button', @buttonClick, @, 1,0,2)
-        @button.anchor.set(0.5, 0.5)
-        @button.visible = false
-        @button_text = @game.add.text(0,0, 'physics', @font)
-        @button_text.anchor.set(0.5, 0.4)
-        @button_text.visible = false
+
+        @subjects = ['math', 'physics', 'bio']
+        @buttons = []
+        @button_texts = []
+        for sub in @subjects
+            debugger
+            button = @game.add.button(0,0, 'button', @buttonClick, @, 1,0,2)
+            button.params = {name: @name, sub:sub}
+            button.anchor.set(0.5, 0.5)
+            button.visible = false
+            @buttons.push(button)
+            button_text = @game.add.text(0,0, sub, @font)
+            button_text.anchor.set(0.5, 0.4)
+            button_text.visible = false
+            @button_texts.push(button_text)
 
         @text = @game.add.text(0,0, @name, @font)
         @text.anchor.set(0.5, 0.5)
@@ -49,29 +57,36 @@ class Player
         @player.inputEnabled = true
         @player.events.onInputUp.add @menu
 
-    buttonClick: ->
-        @button.visible = false
-        @button_text.visible = false
+    buttonClick: (button) ->
+        console.log button.params.name
+        console.log button.params.sub
+        for button in @buttons
+            button.visible = false
+        for button_text in @button_texts
+            button_text.visible = false
         @game.button_visible = false
 
 
     menu: ->
-        if @game.button_visible
+        if @game.button_visible or @name == 'keish'
             return
         pos = {}
         pos.x = Math.floor(@player.x + @player.width / 2)
-        pos.y = Math.floor(@player.y + @player.height / 2 - 40)
-        @button.x = pos.x
-        @button.y = pos.y
-        @button.visible = true
-        @button_text.x = pos.x
-        @button_text.y = pos.y
-        @button_text.visible = true
+        pos.y = Math.floor(@player.y + @player.height / 2)
+        delta = 20
+        initial = 40
+        for button in @buttons
+            button.x = pos.x
+            button.y = pos.y - initial
+            button.visible = true
+            initial += delta
+        initial = 40
+        for button_text in @button_texts
+            button_text.x = pos.x
+            button_text.y = pos.y - initial
+            button_text.visible = true
+            initial += delta
         @game.button_visible = true
-        console.log " click #{@name}"
-        if @name == @game.requirement
-            @game.game_state = "movement"
-        console.log @game.game_state
 
     update: (game, cursors, layers, p1) ->
         @player.body.velocity.x = 0;
