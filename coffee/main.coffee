@@ -16,7 +16,7 @@ class Player
         @game.load.spritesheet(name, "assets/#{name}.png", width, 25) # width, height
         # font
         @font =
-            font: "18px Arial"
+            font: "16px Arial"
             fill: "#000000"
             wordWrap: true
             wordWrapWidth: 20
@@ -35,9 +35,13 @@ class Player
         #@game.physics.arcade.gravity.y = 250
         @player.body.gravity.y = 300
         @player.body.collideWorldBounds = true
+        
         @button = @game.add.button(0,0, 'button', @buttonClick, @, 1,0,2)
         @button.anchor.set(0.5, 0.5)
         @button.visible = false
+        @button_text = @game.add.text(0,0, 'physics', @font)
+        @button_text.anchor.set(0.5, 0.4)
+        @button_text.visible = false
 
         @text = @game.add.text(0,0, @name, @font)
         @text.anchor.set(0.5, 0.5)
@@ -47,14 +51,22 @@ class Player
 
     buttonClick: ->
         @button.visible = false
+        @button_text.visible = false
         @game.button_visible = false
+
 
     menu: ->
         if @game.button_visible
             return
-        @button.x = Math.floor(@player.x + @player.width / 2)
-        @button.y = Math.floor(@player.y + @player.height / 2 - 40)
+        pos = {}
+        pos.x = Math.floor(@player.x + @player.width / 2)
+        pos.y = Math.floor(@player.y + @player.height / 2 - 40)
+        @button.x = pos.x
+        @button.y = pos.y
         @button.visible = true
+        @button_text.x = pos.x
+        @button_text.y = pos.y
+        @button_text.visible = true
         @game.button_visible = true
         console.log " click #{@name}"
         if @name == @game.requirement
