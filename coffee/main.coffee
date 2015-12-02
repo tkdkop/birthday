@@ -8,6 +8,17 @@ window.preferences =
 # math - Katie
 # bio - Miranda
 
+window.requirements = {
+    obstacle1: {
+        users: ['miranda']
+        sub: 'bio'
+    }
+    obstacle2: {
+        users: ['liam', 'nina']
+        sub: 'physics'
+    }
+}
+
 class Player
     constructor: (name, game, width) ->
         _.bindAll @, 'menu', 'createPlayer'
@@ -19,7 +30,7 @@ class Player
             font: "16px Arial"
             fill: "#000000"
             wordWrap: true
-            wordWrapWidth: 20
+            wordWrapWidth: 200
             align:"center"
 
 
@@ -40,7 +51,6 @@ class Player
         @buttons = []
         @button_texts = []
         for sub in @subjects
-            debugger
             button = @game.add.button(0,0, 'button', @buttonClick, @, 1,0,2)
             button.params = {name: @name, sub:sub}
             button.anchor.set(0.5, 0.5)
@@ -50,6 +60,10 @@ class Player
             button_text.anchor.set(0.5, 0.4)
             button_text.visible = false
             @button_texts.push(button_text)
+        title = @game.add.text(0,0, "#{@name} used:", @font)
+        title.anchor.set(0.5, 0.4)
+        title.visible = false
+        @button_texts.push(title)
 
         @text = @game.add.text(0,0, @name, @font)
         @text.anchor.set(0.5, 0.5)
@@ -60,11 +74,20 @@ class Player
     buttonClick: (button) ->
         console.log button.params.name
         console.log button.params.sub
-        for button in @buttons
-            button.visible = false
+        for b in @buttons
+            b.visible = false
         for button_text in @button_texts
             button_text.visible = false
         @game.button_visible = false
+        # obstacle passing
+        req = window.requirements[@game.cur_obstacle]
+        console.log button.params.sub, req.sub, req.users, button.params.name
+        if button.params.sub == req.sub and _.contains(req.users, button.params.name)
+            req.users = _.without(req.users, button.params.name)
+            if _.isEmpty(req.users)
+                @game.game_state = 'movement'
+            # todo handle multiple
+        # todo handle errors
 
 
     menu: ->
@@ -147,13 +170,14 @@ class Game
         @game.load.spritesheet('button', 'assets/flixel-button.png',80, 20)
  
     create_object: (obj) ->
-        position = 
+        position =
             x: obj.x + (@map.tileHeight / 2)
             y: obj.y - (@map.tileHeight / 2)
         
         data = [ '3333', '3333', '3333']
         @game.create.texture('solid', data)
         obstacle = @game.add.sprite(position.x, position.y, 'solid')
+        obstacle.name = obj.name
         @game.physics.enable obstacle
         obstacle.body.allowGravity = false
         return obstacle
@@ -236,8 +260,8 @@ class Game
 
     collide_with_obstacle: (obstacle) ->
         @game.game_state = 'obstacle'
-        console.log "obstacle"
-        @game.requirement = 'katie'
+        console.log "obstacle #{obstacle.name}"
+        @game.cur_obstacle = obstacle.name
         @obstacles = _.without(@obstacles, obstacle)
 
 
