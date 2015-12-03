@@ -1,4 +1,3 @@
-# TODO click on player
 
 window.preferences =
     cutscene_1: false
@@ -90,13 +89,17 @@ class Player
         # obstacle passing
         req = window.requirements[@game.cur_obstacle]
         console.log button.params.sub, req.sub, req.users, button.params.name
-        if button.params.sub == req.sub and _.contains(req.users, button.params.name)
-            req.users = _.without(req.users, button.params.name)
-            if _.isEmpty(req.users)
-                @game.game_state = @game.const.movement
-            # todo handle multiple
-        # todo handle errors
-
+        if button.params.sub == req.sub
+            if _.contains(req.users, button.params.name)
+                req.users = _.without(req.users, button.params.name)
+                if _.isEmpty(req.users)
+                    @game.game_state = @game.const.movement
+                else
+                    @game.log("I don't think #{button.params.name} can do this alone")
+            else
+                @game.log("#{button.params.name} isn't strong enough at #{button.params.sub} to solve this problem")
+        else
+            @game.log("This doesn't look like a #{button.params.sub} problem")
 
     menu: ->
         if @game.button_visible or @name == 'keish'
@@ -283,7 +286,7 @@ class Game
         t = @add.text(@camera.x + @camera.width/2, 60, text, new_font)
         t.anchor.set(0.5, 0.5)
         if exit
-            setTimeout((=> t.kill()), 3000)
+            setTimeout((=> t.kill()), 2500)
         return t
 
     cutscene: (text) ->
@@ -295,8 +298,6 @@ class Game
         t = @log(text, {}, false)
         @cutscene_text = t
 
-
-        
 
 window.main =  =>
     new Game(Phaser)
