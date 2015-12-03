@@ -12,12 +12,20 @@ window.requirements = {
     obstacle1: {
         users: ['miranda']
         sub: 'bio'
+        # add success / fail callbacks here
     }
     obstacle2: {
         users: ['liam', 'nina']
         sub: 'physics'
     }
 }
+
+window.cutscene_font =
+    font: "24px Arial"
+    fill: "#FFFFFF"
+    wordWrap: true
+    wordWrapWidth: 600
+    align:"center"
 
 class Player
     constructor: (name, game, width) ->
@@ -85,7 +93,7 @@ class Player
         if button.params.sub == req.sub and _.contains(req.users, button.params.name)
             req.users = _.without(req.users, button.params.name)
             if _.isEmpty(req.users)
-                @game.game_state = 'movement'
+                @game.game_state = @game.const.movement
             # todo handle multiple
         # todo handle errors
 
@@ -115,7 +123,7 @@ class Player
         @player.body.velocity.x = 0;
         game.physics.arcade.collide @player, layers.collision       
 
-        if (cursors.right.isDown or cursors.left.isDown) and @game.game_state == "movement"
+        if (cursors.right.isDown or cursors.left.isDown) and @game.game_state == @game.const.movement
             if cursors.left.isDown
                 if @ != p1 
                     if @player.body.position.x - p1.player.body.position.x > @distance + 10
@@ -152,9 +160,18 @@ class Player
 class Game
     constructor: (Phaser) ->
         _.bindAll @, 'preload', 'create', 'create_object', 'update', 'render', 'collide_with_obstacle'
-        @game = new Phaser.Game(800, 600, Phaser.AUTO, 'game-container', 
+        @game = new Phaser.Game(800, 600, Phaser.AUTO, 'game-container',
             {preload: @preload, create: @create, update: @update, render: @render}, 
                                 null, false, false)
+
+        _.bind(@log, @game)
+        _.bind(@cutscene, @game)
+        @game.log = @log
+        @game.cutscene = @cutscene
+        @game.const = {}
+        @game.const.movement = "movement"
+        @game.const.obstacle = "obstacle"
+        @game.const.cutscene = "cutscene"
     
     preload: ->
         # katie - 22x25, nina - 19x25, miranda - 20x25, others - 17x25
@@ -224,31 +241,22 @@ class Game
 
         # Text background
         if window.preferences.cutscene_1
-            data = [ '3333', '3333', '3333']
-            @game.create.texture('solid', data, 200, 200)
-            console.log "adding shit"
-            @start_screen = @game.add.sprite(0, 0, 'solid')
-            @game.game_state = "start"
-            cutscene_font = 
-                font: "24px Arial"
-                fill: "#FFFFFF"
-                align:"center"
-            @start_text = @game.add.text( @game.world.centerX, @game.world.centerY, 
-                'Once upon a time\n...', cutscene_font )
+            @game.cutscene_text = @game.cutscene('Once upon a time\n...')
+
 
         # game_state: start, movement, obstacle
         if not @game.game_state?
-            @game.game_state = "movement"
+            @game.game_state = @game.const.movement
 
         # input
         @cursors = @game.input.keyboard.createCursorKeys()
         console.log "Game created"
 
     update: ->
-        if @game.game_state == "start" and @game.input.mousePointer.isDown
-            @start_screen.kill()
-            @start_text.kill()
-            @game.game_state = "movement"
+        if @game.game_state == @game.const.cutscene and @game.input.mousePointer.isDown
+            @game.cutscene_screen.kill()
+            @game.cutscene_text.kill()
+            @game.game_state = @game.const.movement
         else
             for player in _.union @player_list, [@player]
                 player.update @game, @cursors, @layers, @player
@@ -259,8 +267,7 @@ class Game
                         return false))
 
     collide_with_obstacle: (obstacle) ->
-        @game.game_state = 'obstacle'
-        console.log "obstacle #{obstacle.name}"
+        @game.game_state = @game.const.obstacle
         @game.cur_obstacle = obstacle.name
         @obstacles = _.without(@obstacles, obstacle)
 
@@ -269,6 +276,25 @@ class Game
         # only for debugging, this can get removed from the game when completed
         if window.preferences.debug
             @game.debug.inputInfo(32, 32);
+
+    log: (text, font_changes = {fill:'#000'}, exit=true) ->
+        new_font = {}
+        _.extend(new_font, window.cutscene_font, font_changes)
+        t = @add.text(@camera.x + @camera.width/2, 60, text, new_font)
+        t.anchor.set(0.5, 0.5)
+        if exit
+            setTimeout((=> t.kill()), 3000)
+        return t
+
+    cutscene: (text) ->
+        data = [ '3333', '3333', '3333']
+        if not @cutscene_background
+            @cutscene_background = @create.texture('solid', data, 200, 200)
+        @cutscene_screen = @add.sprite(@camera.x, 0, 'solid')
+        @game_state = @const.cutscene
+        t = @log(text, {}, false)
+        @cutscene_text = t
+
 
         
 
