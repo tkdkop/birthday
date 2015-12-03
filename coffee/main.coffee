@@ -14,6 +14,10 @@ window.requirements = {
         # add success / fail callbacks here
     }
     obstacle2: {
+        users:['katie']
+        sub:'math'
+    }
+    obstacle3: {
         users: ['liam', 'nina']
         sub: 'physics'
     }
@@ -93,7 +97,9 @@ class Player
             if _.contains(req.users, button.params.name)
                 req.users = _.without(req.users, button.params.name)
                 if _.isEmpty(req.users)
-                    @game.game_state = @game.const.movement
+                    # great success!
+                    @game.cutscene("#{button.params.name} solved the #{button.params.sub} problem!")
+
                 else
                     @game.log("I don't think #{button.params.name} can do this alone")
             else
