@@ -1,6 +1,6 @@
 
 window.preferences =
-    cutscene_1: false
+    cutscene_1: true
     debug: true
 
 # physics - Liam and Nina
@@ -175,13 +175,17 @@ class Game
 
         _.bind(@log, @game)
         _.bind(@cutscene, @game)
+        _.bind(@multiscene, @game)
         @game.log = @log
         @game.cutscene = @cutscene
+        @game.multiscene = @multiscene
         @game.const = {}
         @game.const.movement = "movement"
         @game.const.obstacle = "obstacle"
         @game.const.cutscene = "cutscene"
-    
+        @game.const.multiscene = "multiscene"
+        @input_timeout = false
+
     preload: ->
         # katie - 22x25, nina - 19x25, miranda - 20x25, others - 17x25
         @player = new Player('keish', @game, 17)
@@ -250,7 +254,14 @@ class Game
 
         # Text background
         if window.preferences.cutscene_1
-            @game.cutscene_text = @game.cutscene('Once upon a time\n...')
+            @game.multiscene([
+                'Once upon a time there was a teacher named Keish. ' +
+                'One day she had her boyfriend, Log, in to teach her kids computer ' +
+                'science.',
+                'Everything was going great until he was kidnapped by an evil Luddite mob.',
+                'Four brave kids volunteered to help Keish rescue Log. She assigned the rest '+
+                'practice problems to do while she was away'
+            ])
 
 
         # game_state: start, movement, obstacle
@@ -262,10 +273,19 @@ class Game
         console.log "Game created"
 
     update: ->
-        if @game.game_state == @game.const.cutscene and @game.input.mousePointer.isDown
+        if (@game.game_state == @game.const.cutscene or @game.game_state == @game.const.multiscene) and @game.input.mousePointer.isDown
+            if @input_timeout
+                return
+            else
+                @input_timeout = true
+                setTimeout((=>@input_timeout = false), 1000)
+
             @game.cutscene_screen.kill()
             @game.cutscene_text.kill()
-            @game.game_state = @game.const.movement
+            if @game.game_state == @game.const.cutscene
+                @game.game_state = @game.const.movement
+            else
+                @game.multiscene(@game.multiscene_text_list)
         else
             for player in _.union @player_list, [@player]
                 player.update @game, @cursors, @layers, @player
@@ -296,14 +316,22 @@ class Game
         return t
 
     cutscene: (text) ->
-        data = [ '3333', '3333', '3333']
         if not @cutscene_background
+            data = [ '3333', '3333', '3333']
             @cutscene_background = @create.texture('solid', data, 200, 200)
         @cutscene_screen = @add.sprite(@camera.x, 0, 'solid')
         @game_state = @const.cutscene
         t = @log(text, {}, false)
         @cutscene_text = t
 
+    multiscene: (text_list) ->
+        if text_list.length == 0
+            @game_state = @const.movement
+            return
+        cur_text = text_list[0]
+        @multiscene_text_list = _.without(text_list, cur_text)
+        @cutscene(cur_text)
+        @game_state = @const.multiscene
 
 window.main =  =>
-    new Game(Phaser)
+    window.game = new Game(Phaser)
