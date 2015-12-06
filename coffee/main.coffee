@@ -1,25 +1,53 @@
 
 window.preferences =
     cutscene_1: true
-    debug: true
+    debug: false
 
 # physics - Liam and Nina
 # math - Katie
 # bio - Miranda
 
+window.game_over_text = ["Keish and her students found Log trapped in the Luddite castle. "+
+  " They rescued him and snuck away.",
+  "The students were given the rest of the day off, and Log and Keish lived together happily ever after.",
+  "Happy Birthday Keisha!"
+]
+
 window.requirements = {
     obstacle1: {
         users: ['miranda']
         sub: 'bio'
+        sprite: 'spider'
+        kill: true
+        scale: 1
+        problem_text: 'Oh no, there\'s a spider blocking the path\nClick on a student to come up with a solution'
+        finish_text: 'Miranda remembers hearing from bio class that many animals are afraid of smoke. '+
+          'She lights a fire with some wet leaves to create smoke and scare the spider away.'
         # add success / fail callbacks here
     }
     obstacle2: {
         users:['katie']
         sub:'math'
+        sprite: 'old_guy'
+        scale: 2
+        problem_text: 'This man needs help building a fence, but he wants to use his resources as efficiently as possible'
+        finish_text_list: ['Katie uses her math skills to prove that a regular n-sided polygon has the largest area to '+
+          'perimeter ratio.',  'She also proves that more sides also improves the ratio. She teaches the man that '+
+          'building a circular fence will allow him to fence the largest area using the fewest resources.',
+          'The man is thankful for their help and wishes them well on the rest of their journey']
     }
     obstacle3: {
         users: ['liam', 'nina']
         sub: 'physics'
+        sprite: 'gear'
+        additional: 'bridge'
+        scale: 2
+        problem_text: 'We need to find some way to cross this bridge'
+        finish_text_list: ['Liam and Nina work together to determine how to get the bridge down.',
+            'They tie two rocks together with a string. Nina calculates the vectors needed to hit the gear ' +
+            'across the chasm, while Liam calculates the momentum the rocks must have to cause the bridge to lower',
+            'Together they lower the bridge and the crew can continue their quest.'
+        ]
     }
 }
 
@@ -46,6 +74,11 @@ class Player
 
 
     createPlayer: (scale, x, y, distance) ->
+        @initial_y = y
+        console.log window.preferences
+        if window.preferences.debug
+            console.log x
+            x += 1100
         @distance = distance
         @player = @game.add.sprite(x, y, @name)
         @player.anchor.setTo(0.5, 0.5)
@@ -98,7 +131,13 @@ class Player
                 req.users = _.without(req.users, button.params.name)
                 if _.isEmpty(req.users)
                     # great success!
-                    @game.cutscene("#{button.params.name} solved the #{button.params.sub} problem!")
+                    @game.cur_obstacle_text.kill()
+                    if req.finish_callback?
+                        req.finish_callback()
+                    if req.finish_text_list?
+                        @game.multiscene(req.finish_text_list)
+                    else
+                        @game.cutscene(req.finish_text)
 
                 else
                     @game.log("I don't think #{button.params.name} can do this alone")
@@ -129,6 +168,10 @@ class Player
         @game.button_visible = true
 
     update: (game, cursors, layers, p1) ->
+        if @player.body.x > 1920 and !@game.game_end?
+            @game.multiscene(window.game_over_text)
+            @game.game_end = true
+            return
         @player.body.velocity.x = 0;
         game.physics.arcade.collide @player, layers.collision       
 
@@ -169,7 +212,7 @@ class Player
 class Game
     constructor: (Phaser) ->
         _.bindAll @, 'preload', 'create', 'create_object', 'update', 'render', 'collide_with_obstacle'
-        @game = new Phaser.Game(800, 600, Phaser.AUTO, 'game-container',
+        @game = new Phaser.Game(800, 525, Phaser.AUTO, 'game-container',
             {preload: @preload, create: @create, update: @update, render: @render}, 
                                 null, false, false)
 
@@ -184,6 +227,7 @@ class Game
         @game.const.obstacle = "obstacle"
         @game.const.cutscene = "cutscene"
         @game.const.multiscene = "multiscene"
+        @game.const.end = "end"
         @input_timeout = false
 
     preload: ->
@@ -198,16 +242,39 @@ class Game
         @game.load.image('tiles', 'tutorials/source/assets/images/tiles_spritesheet.png')
         @game.load.tilemap('level','tutorials/v2.json', null, Phaser.Tilemap.TILED_JSON)
         @game.load.spritesheet('button', 'assets/flixel-button.png',80, 20)
+        @game.load.image('spider','assets/bio1.png')
+        @game.load.image('old_guy', 'assets/old-guy.png')
+        @game.load.image('gear','assets/gear.png')
+        @game.load.image('bridge', 'assets/bridge.png')
+        @game.load.image('castle','assets/castle.gif')
  
     create_object: (obj) ->
+        if window.preferences.debug
+            if obj.name == 'obstacle1' or obj.name == 'obstacle2'
+                return
         position =
             x: obj.x + (@map.tileHeight / 2)
             y: obj.y - (@map.tileHeight / 2)
-        
-        data = [ '3333', '3333', '3333']
-        @game.create.texture('solid', data)
-        obstacle = @game.add.sprite(position.x, position.y, 'solid')
+        ob_info = window.requirements[obj.name]
+        # bridge only
+        if ob_info.additional?
+            raised_bridge = @game.add.sprite(position.x+60, position.y-28, ob_info.additional)
+            raised_bridge.scale.setTo(3,3)
+            raised_bridge.rotation = Math.PI/2
+            lowered_bridge = @game.add.sprite(position.x-10, position.y+45, ob_info.additional)
+            lowered_bridge.scale.setTo(3,3)
+            lowered_bridge.visible = false
+            ob_info.finish_callback = =>
+                raised_bridge.kill()
+                lowered_bridge.visible = true
+
+
+        obstacle = @game.add.sprite(position.x, position.y, ob_info.sprite)
         obstacle.name = obj.name
+        obstacle.scale.setTo(ob_info.scale, ob_info.scale)
+        if ob_info.kill?
+            ob_info.finish_callback = =>
+                obstacle.kill()
         @game.physics.enable obstacle
         obstacle.body.allowGravity = false
         return obstacle
@@ -241,12 +308,15 @@ class Game
             @obstacles.push obstacle
         console.log @obstacles
 
+        c = @game.add.sprite(1800,42, 'castle')
+        c.scale.set(0.5, 0.5)
+
         # player
-        @player.createPlayer 1.5, 80, 250, 0
+        @player.createPlayer 1.5, 80, 244, 0
         x = 50
         dist = 20
         for i in [0...@player_list.length]
-            @player_list[i].createPlayer(1, 80 - i*10, 260, dist + i*dist)
+            @player_list[i].createPlayer(1, 80 - i*10, 255, dist + i*dist)
             
         @game.physics.arcade.gravity.y = 250
         @player.player.body.collideWorldBounds = true
@@ -255,12 +325,16 @@ class Game
         # Text background
         if window.preferences.cutscene_1
             @game.multiscene([
+                '(Click to continue)\n' +
                 'Once upon a time there was a teacher named Keish. ' +
                 'One day she had her boyfriend, Log, in to teach her kids computer ' +
                 'science.',
-                'Everything was going great until he was kidnapped by an evil Luddite mob.',
-                'Four brave kids volunteered to help Keish rescue Log. She assigned the rest '+
-                'practice problems to do while she was away'
+                'Everything was going great until suddenly an evil Luddite mob broke in to the classroom. ',
+                'The Luddites kidnapped Log in protest of computer science and all technology.',
+                'Four brave students volunteered to help Keish rescue Log. She assigned the rest '+
+                'practice problems to do while she was away.',
+                'With that she rushed off with her students to ' +
+                'find Log and save the day...\n(Use the arrows to move)'
             ])
 
 
@@ -273,7 +347,8 @@ class Game
         console.log "Game created"
 
     update: ->
-        if (@game.game_state == @game.const.cutscene or @game.game_state == @game.const.multiscene) and @game.input.mousePointer.isDown
+        if (@game.game_state == @game.const.cutscene or @game.game_state == @game.const.multiscene or
+          @game.game_end?) and @game.input.mousePointer.isDown
             if @input_timeout
                 return
             else
@@ -294,10 +369,16 @@ class Game
                     (=>
                         @collide_with_obstacle(obstacle)
                         return false))
+        for player in _.union(@player_list, [@player])
+            player.player.body.y = player.initial_y
 
     collide_with_obstacle: (obstacle) ->
         @game.game_state = @game.const.obstacle
         @game.cur_obstacle = obstacle.name
+        ob_info = window.requirements[obstacle.name]
+        push_down = '\n\n\n\n\n'
+        t = @game.log(push_down+ob_info.problem_text, {}, false)
+        @game.cur_obstacle_text = t
         @obstacles = _.without(@obstacles, obstacle)
 
 
@@ -309,7 +390,7 @@ class Game
     log: (text, font_changes = {fill:'#000'}, exit=true) ->
         new_font = {}
         _.extend(new_font, window.cutscene_font, font_changes)
-        t = @add.text(@camera.x + @camera.width/2, 60, text, new_font)
+        t = @add.text(@camera.x + @camera.width/2, 70, text, new_font)
         t.anchor.set(0.5, 0.5)
         if exit
             setTimeout((=> t.kill()), 2500)
