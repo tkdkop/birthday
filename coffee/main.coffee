@@ -63,7 +63,7 @@ class Player
         _.bindAll @, 'menu', 'createPlayer'
         @game = game
         @name = name
-        @game.load.spritesheet(name, "assets/#{name}.png", width, 25) # width, height
+        @game.load.spritesheet(name, "/birthday/assets/#{name}.png", width, 25) # width, height
         # font
         @font =
             font: "16px Arial"
@@ -239,14 +239,14 @@ class Game
         @player_list.push new Player('miranda', @game, 20)
         @player_list.push new Player('katie', @game, 22)
 
-        @game.load.image('tiles', 'tutorials/source/assets/images/tiles_spritesheet.png')
-        @game.load.tilemap('level','tutorials/v2.json', null, Phaser.Tilemap.TILED_JSON)
-        @game.load.spritesheet('button', 'assets/flixel-button.png',80, 20)
-        @game.load.image('spider','assets/bio1.png')
-        @game.load.image('old_guy', 'assets/old-guy.png')
-        @game.load.image('gear','assets/gear.png')
-        @game.load.image('bridge', 'assets/bridge.png')
-        @game.load.image('castle','assets/castle.gif')
+        @game.load.image('tiles', '/birthday/tutorials/source/assets/images/tiles_spritesheet.png')
+        @game.load.tilemap('level','/birthday/tutorials/v2.json', null, Phaser.Tilemap.TILED_JSON)
+        @game.load.spritesheet('button', '/birthday/assets/flixel-button.png',80, 20)
+        @game.load.image('spider','/birthday/assets/bio1.png')
+        @game.load.image('old_guy', '/birthday/assets/old-guy.png')
+        @game.load.image('gear','/birthday/assets/gear.png')
+        @game.load.image('bridge', '/birthday/assets/bridge.png')
+        @game.load.image('castle','/birthday/assets/castle.gif')
  
     create_object: (obj) ->
         if window.preferences.debug
